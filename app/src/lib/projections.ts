@@ -12,6 +12,7 @@ import {
   setDate,
 } from "date-fns";
 import type { RateInfo, RecurringTemplate } from "./types";
+import { isoDate } from "./dates";
 import { convert } from "./fx";
 
 export interface TemplateProjection {
@@ -23,31 +24,40 @@ export interface TemplateProjection {
   projectedDisplay: number | null;
 }
 
-/**
- * Recurring templates are projection sources, never materialized rows.
- * This computes the expected occurrences of a template inside a period.
- */
+/** Scheduled occurrence dates for a template inside [periodStart, periodEnd]. */
+export function occurrenceDatesInPeriod(
+  t: RecurringTemplate,
+  periodStart: Date,
+  periodEnd: Date
+): string[] {
+  const templateStart = parseISO(t.start_date);
+  const templateEnd = t.end_date ? parseISO(t.end_date) : null;
+
+  const windowEnd = templateEnd && isBefore(templateEnd, periodEnd) ? templateEnd : periodEnd;
+  if (isAfter(templateStart, windowEnd)) return [];
+
+  let cursor = firstOccurrenceNear(t, templateStart, periodStart);
+  const dates: string[] = [];
+  while (!isAfter(cursor, windowEnd)) {
+    if (!isBefore(cursor, periodStart) && !isBefore(cursor, templateStart)) {
+      dates.push(isoDate(cursor));
+    }
+    cursor = step(t, cursor);
+  }
+  return dates;
+}
+
+/** All occurrence dates from template start through upTo (inclusive). */
+export function occurrenceDatesUpTo(t: RecurringTemplate, upTo: Date): string[] {
+  return occurrenceDatesInPeriod(t, parseISO(t.start_date), upTo);
+}
+
 export function occurrencesInPeriod(
   t: RecurringTemplate,
   periodStart: Date,
   periodEnd: Date
 ): number {
-  const templateStart = parseISO(t.start_date);
-  const templateEnd = t.end_date ? parseISO(t.end_date) : null;
-
-  const windowEnd = templateEnd && isBefore(templateEnd, periodEnd) ? templateEnd : periodEnd;
-  if (isAfter(templateStart, windowEnd)) return 0;
-
-  // Jump close to the period start, then walk forward.
-  let cursor = firstOccurrenceNear(t, templateStart, periodStart);
-  let count = 0;
-  while (!isAfter(cursor, windowEnd)) {
-    if (!isBefore(cursor, periodStart) && !isBefore(cursor, templateStart)) {
-      count += 1;
-    }
-    cursor = step(t, cursor);
-  }
-  return count;
+  return occurrenceDatesInPeriod(t, periodStart, periodEnd).length;
 }
 
 function firstOccurrenceNear(

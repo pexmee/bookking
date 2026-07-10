@@ -17,6 +17,7 @@ import { getRates } from "@/lib/fx";
 import { formatMoney } from "@/lib/money";
 import { projectTemplates } from "@/lib/projections";
 import {
+  ensureRecurringMaterialized,
   getCategories,
   getEntriesInRange,
   getProfiles,
@@ -37,6 +38,7 @@ export default async function OverviewPage({
   const profileIds = activeProfile === "all" ? null : [activeProfile];
 
   const settings = await getSettings();
+  await ensureRecurringMaterialized();
   const [rates, profiles, categories, entries, templates] = await Promise.all([
     getRates(settings.fx_stale_hours),
     getProfiles(),

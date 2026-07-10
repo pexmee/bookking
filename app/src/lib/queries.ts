@@ -1,4 +1,5 @@
 import { sql } from "./db";
+import { materializeRecurringEntries } from "./materialize";
 import type {
   Category,
   Entry,
@@ -6,6 +7,11 @@ import type {
   RecurringTemplate,
   Settings,
 } from "./types";
+
+/** Create any due recurring ledger rows before reads. Safe to call on every request. */
+export async function ensureRecurringMaterialized(): Promise<void> {
+  await materializeRecurringEntries();
+}
 
 export async function getSettings(): Promise<Settings> {
   const initial = process.env.DEFAULT_DISPLAY_CURRENCY ?? "USD";

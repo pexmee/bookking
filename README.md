@@ -62,8 +62,8 @@ BOOKKING_VERSION=v1.0.0 docker compose up -d
   search.
 - **Flexible dates** — pin an entry to a day, a month, or a year when the exact day
   is unknown or does not matter.
-- **Recurring templates** — project rent, salary, and subscriptions without
-  auto-generating ledger rows. Log the real amount when the bill arrives.
+- **Recurring templates** — rent, salary, and subscriptions are logged automatically on
+  their schedule. Adjust the amount when the real figure differs.
 - **Profiles** — separate books (personal, business, etc.) you can view alone or
   together.
 - **Multi-currency** — entries keep their native currency; everything converts to your
@@ -109,6 +109,29 @@ BOOKKING_VERSION=v1.0.1 docker compose up -d
 ```
 
 Export CSV or JSON from Settings first if you want a backup before upgrading.
+
+**Database migrations (existing installs only)** — schema files live in
+`supabase/migrations/`. They run automatically on a **fresh** install (empty
+`db-data` volume). They do **not** run when you upgrade an existing database — a
+normal `git pull` + `docker compose up -d` keeps your volume and skips pending
+migrations.
+
+If a release adds a migration and you skip it, the app may fail on startup or when
+using new features. After upgrading, apply any new files you have not run yet. For
+example, releases with automatic recurring logging require `0002`:
+
+```bash
+docker exec -e PGPASSWORD="${POSTGRES_PASSWORD:-bookking}" -i bookking-db-1 \
+  psql -U supabase_admin -d postgres \
+  -f /docker-entrypoint-initdb.d/0002_recurring_materialize.sql
+```
+
+Use your actual `POSTGRES_PASSWORD` from `.env` if you changed it. The file path
+works after `git pull` because migrations are mounted into the database container.
+Re-running a migration is safe — they use `if not exists` where needed.
+
+**New installs** (clone, first `docker compose up`) get the full schema automatically;
+no manual step.
 
 **Wipe all data and start fresh** — only use this when you mean to delete everything.
 The `-v` flag removes the database volume:

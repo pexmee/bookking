@@ -4,6 +4,7 @@ import { LedgerControls } from "@/components/LedgerControls";
 import { LedgerTable } from "@/components/LedgerTable";
 import { QuickAdd } from "@/components/QuickAdd";
 import {
+  ensureRecurringMaterialized,
   getCategories,
   getLedgerEntries,
   getProfiles,
@@ -22,16 +23,17 @@ export default async function LedgerPage({
   const activeProfile = sp.profile ?? "all";
   const profileIds = activeProfile === "all" ? null : [activeProfile];
 
-  const [settings, profiles, categories, entries] = await Promise.all([
+  const [settings, profiles, categories] = await Promise.all([
     getSettings(),
     getProfiles(),
     getCategories(null),
-    getLedgerEntries({
-      profileIds,
-      kind: sp.kind === "income" || sp.kind === "expense" ? sp.kind : undefined,
-      search: sp.q,
-    }),
   ]);
+  await ensureRecurringMaterialized();
+  const entries = await getLedgerEntries({
+    profileIds,
+    kind: sp.kind === "income" || sp.kind === "expense" ? sp.kind : undefined,
+    search: sp.q,
+  });
 
   return (
     <>

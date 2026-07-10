@@ -1,10 +1,11 @@
-import { getLedgerEntries } from "@/lib/queries";
+import { ensureRecurringMaterialized, getLedgerEntries } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const format = url.searchParams.get("format") ?? "json";
+  await ensureRecurringMaterialized();
   const entries = await getLedgerEntries({ profileIds: null, limit: 100000 });
 
   const rows = entries.map((e) => ({

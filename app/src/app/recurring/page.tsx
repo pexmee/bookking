@@ -5,6 +5,7 @@ import { parsePeriod } from "@/lib/dates";
 import { getRates } from "@/lib/fx";
 import { projectTemplates } from "@/lib/projections";
 import {
+  ensureRecurringMaterialized,
   getCategories,
   getProfiles,
   getSettings,
@@ -24,6 +25,7 @@ export default async function RecurringPage({
   const profileIds = activeProfile === "all" ? null : [activeProfile];
 
   const settings = await getSettings();
+  await ensureRecurringMaterialized();
   const [rates, profiles, categories, templates] = await Promise.all([
     getRates(settings.fx_stale_hours),
     getProfiles(),
@@ -48,7 +50,8 @@ export default async function RecurringPage({
       <div className="page-head">
         <h1>Recurring</h1>
         <span className="fx-note">
-          Templates project cash flow — they never write ledger rows themselves.
+          Recurring items are logged automatically on their schedule. Adjust an amount
+          when the real figure differs.
         </span>
       </div>
 

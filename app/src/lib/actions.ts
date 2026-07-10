@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { sql } from "./db";
+import { materializeRecurringEntries } from "./materialize";
 import type { Cadence, DatePrecision, EntryKind } from "./types";
 
 function revalidateAll() {
@@ -110,6 +111,30 @@ export async function createEntry(input: EntryInput) {
   return {};
 }
 
+/** Create or update a ledger row for a recurring template occurrence. */
+export async function upsertTemplateEntry(input: EntryInput & { recurringTemplateId: string }) {
+  if (!(input.amount > 0)) return { error: "Amount must be above zero." };
+  await sql`
+    delete from recurring_skips
+    where template_id = ${input.recurringTemplateId}
+      and occurred_on = ${input.occurredOn}
+  `;
+  await sql`
+    insert into entries (profile_id, category_id, recurring_template_id,
+                         amount, currency, description, date_precision, occurred_on)
+    values (${input.profileId}, ${input.categoryId}, ${input.recurringTemplateId},
+            ${input.amount}, ${input.currency}, ${input.description.trim()},
+            ${input.datePrecision}, ${input.occurredOn})
+    on conflict (recurring_template_id, occurred_on)
+      where recurring_template_id is not null
+    do update set
+      amount = excluded.amount,
+      description = excluded.description
+  `;
+  revalidateAll();
+  return {};
+}
+
 export async function updateEntry(id: string, input: EntryInput) {
   if (!(input.amount > 0)) return { error: "Amount must be above zero." };
   await sql`
@@ -135,11 +160,25 @@ export async function deleteEntry(id: string) {
               trim(currency) as currency, description, date_precision,
               occurred_on::text as occurred_on
   `;
+  if (row?.recurring_template_id) {
+    await sql`
+      insert into recurring_skips (template_id, occurred_on)
+      values (${row.recurring_template_id as string}, ${row.occurred_on as string})
+      on conflict do nothing
+    `;
+  }
   revalidateAll();
   return row ?? null;
 }
 
 export async function restoreEntry(row: Record<string, unknown>) {
+  if (row.recurring_template_id) {
+    await sql`
+      delete from recurring_skips
+      where template_id = ${row.recurring_template_id as string}
+        and occurred_on = ${row.occurred_on as string}
+    `;
+  }
   await sql`
     insert into entries (profile_id, category_id, recurring_template_id,
                          amount, currency, description, date_precision, occurred_on)
@@ -182,6 +221,7 @@ export async function createTemplate(input: TemplateInput) {
        ${input.startDate}, ${input.endDate}, ${input.isVariable},
        ${input.amountMin}, ${input.amountMax})
   `;
+  await materializeRecurringEntries();
   revalidateAll();
   return {};
 }
@@ -204,6 +244,7 @@ export async function updateTemplate(id: string, input: TemplateInput) {
       amount_max = ${input.amountMax}
     where id = ${id}
   `;
+  await materializeRecurringEntries();
   revalidateAll();
   return {};
 }

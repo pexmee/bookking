@@ -2,9 +2,9 @@
 
 import { useMemo, useState, useTransition } from "react";
 import {
-  createEntry,
   createTemplate,
   deleteTemplate,
+  upsertTemplateEntry,
   type TemplateInput,
 } from "@/lib/actions";
 import { CURRENCIES, formatMoney } from "@/lib/money";
@@ -149,9 +149,9 @@ function TemplateRow({
   const [date, setDate] = useState(today());
   const [pending, startTransition] = useTransition();
 
-  function logActual() {
+  function adjustEntry() {
     startTransition(async () => {
-      const result = await createEntry({
+      const result = await upsertTemplateEntry({
         profileId: t.profile_id,
         categoryId: t.category_id,
         amount: parseFloat(amount.replace(",", ".")),
@@ -202,7 +202,7 @@ function TemplateRow({
             className="btn btn--ghost btn--small"
             onClick={() => setLogging((v) => !v)}
           >
-            {logging ? "Cancel" : "Log actual"}
+            {logging ? "Cancel" : "Adjust"}
           </button>{" "}
           <button
             className="row-delete"
@@ -219,7 +219,7 @@ function TemplateRow({
           <td colSpan={6} style={{ background: "var(--surface-sunken)" }}>
             <div style={{ display: "flex", gap: 10, alignItems: "flex-end", padding: "4px 0" }}>
               <div className="field" style={{ width: 130 }}>
-                <span className="label">Actual amount ({t.currency})</span>
+                <span className="label">Amount ({t.currency})</span>
                 <input
                   className="input money"
                   inputMode="decimal"
@@ -236,8 +236,8 @@ function TemplateRow({
                   onChange={(e) => setDate(e.target.value)}
                 />
               </div>
-              <button className="btn btn--small" disabled={pending} onClick={logActual}>
-                {pending ? "Logging…" : `Log ${t.name}`}
+              <button className="btn btn--small" disabled={pending} onClick={adjustEntry}>
+                {pending ? "Saving…" : `Save ${t.name}`}
               </button>
             </div>
           </td>
