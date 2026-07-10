@@ -57,7 +57,7 @@ services:
       ACME_EMAIL: ${ACME_EMAIL:-}
     ports:
       # Localhost only (default). For LAN access change to "0.0.0.0:443:443" — see README.
-      - "127.0.0.1:443:443"
+      - "0.0.0.0:443:443"
     volumes:
       - ./caddy/entrypoint.sh:/entrypoint.sh:ro
       - ./certs:/etc/certs:ro

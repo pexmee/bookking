@@ -15,12 +15,18 @@ if (-not (Get-Command mkcert -ErrorAction SilentlyContinue)) {
 mkcert -install
 
 $hosts = @("localhost", "127.0.0.1", "::1", "bookking.local")
-$lan = Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
-  Where-Object { $_.IPAddress -match '^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)' -and $_.PrefixOrigin -ne 'WellKnown' } |
-  Select-Object -First 1 -ExpandProperty IPAddress
-if ($lan) {
-  Write-Host "Including LAN address: $lan"
-  $hosts += $lan
+$lanCandidates = Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
+  Where-Object {
+    $_.IPAddress -match '^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)' -and
+    $_.PrefixOrigin -ne 'WellKnown' -and
+    $_.InterfaceAlias -notmatch 'WSL|Hyper-V|VirtualBox|VMware|Loopback'
+  } |
+  Sort-Object @{ Expression = { if ($_.PrefixOrigin -eq 'Dhcp') { 0 } else { 1 } } }, IPAddress
+foreach ($addr in $lanCandidates.IPAddress) {
+  if ($hosts -notcontains $addr) {
+    Write-Host "Including LAN address: $addr"
+    $hosts += $addr
+  }
 }
 
 New-Item -ItemType Directory -Force -Path $Certs | Out-Null

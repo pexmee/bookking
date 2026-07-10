@@ -5,7 +5,7 @@ if [ -n "$BOOKKING_DOMAIN" ]; then
   cat >/etc/caddy/Caddyfile <<EOF
 {
   admin off
-  http_port -1
+  auto_https disable_redirects
   email ${ACME_EMAIL:-}
 }
 
@@ -17,7 +17,7 @@ elif [ -f /etc/certs/cert.pem ] && [ -f /etc/certs/key.pem ]; then
   cat >/etc/caddy/Caddyfile <<EOF
 {
   admin off
-  http_port -1
+  auto_https disable_redirects
 }
 
 :443 {
