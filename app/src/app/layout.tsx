@@ -7,6 +7,7 @@ import "@fontsource/ibm-plex-sans/600.css";
 import "@fontsource/ibm-plex-mono/400.css";
 import "@fontsource/ibm-plex-mono/500.css";
 import "./globals.css";
+import { AccountBadge } from "@/components/AccountBadge";
 import { Sidebar } from "@/components/Sidebar";
 
 export const metadata: Metadata = {
@@ -33,7 +34,10 @@ export default function RootLayout({
       <body>
         <div className="shell">
           <Sidebar />
-          <main className="main">{children}</main>
+          <main className="main">
+            <AccountBadge />
+            {children}
+          </main>
         </div>
       </body>
     </html>

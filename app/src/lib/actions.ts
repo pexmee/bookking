@@ -3,37 +3,31 @@
 import { revalidatePath } from "next/cache";
 import { sql } from "./db";
 import { materializeRecurringEntries } from "./materialize";
+import { DEFAULT_CATEGORIES } from "./seed-data";
+import { currentUserId } from "./session";
 import type { Cadence, DatePrecision, EntryKind } from "./types";
 
 function revalidateAll() {
   revalidatePath("/", "layout");
 }
 
-/* ---------- profiles ---------- */
+async function ownedProfileId(profileId: string, userId: string): Promise<boolean> {
+  const [row] = await sql<{ id: string }[]>`
+    select id from profiles where id = ${profileId} and user_id = ${userId}
+  `;
+  return !!row;
+}
 
-const DEFAULT_CATEGORIES: [string, EntryKind, string][] = [
-  ["Salary", "income", "fixed_recurring"],
-  ["Freelance", "income", "variable_recurring"],
-  ["Other income", "income", "irregular"],
-  ["Rent", "expense", "fixed_recurring"],
-  ["Subscriptions", "expense", "fixed_recurring"],
-  ["Utilities", "expense", "variable_recurring"],
-  ["Groceries", "expense", "variable_recurring"],
-  ["Transport", "expense", "variable_recurring"],
-  ["Dining out", "expense", "discretionary"],
-  ["Entertainment", "expense", "discretionary"],
-  ["Travel", "expense", "irregular"],
-  ["Health", "expense", "irregular"],
-  ["Other", "expense", "irregular"],
-];
+/* ---------- profiles ---------- */
 
 export async function createProfile(name: string, color: string) {
   const trimmed = name.trim();
   if (!trimmed) return { error: "A profile needs a name." };
+  const userId = await currentUserId();
   const [profile] = await sql<{ id: string }[]>`
-    insert into profiles (name, color, sort_order)
-    values (${trimmed}, ${color},
-            (select coalesce(max(sort_order), 0) + 1 from profiles))
+    insert into profiles (user_id, name, color, sort_order)
+    values (${userId}, ${trimmed}, ${color},
+            (select coalesce(max(sort_order), 0) + 1 from profiles where user_id = ${userId}))
     returning id
   `;
   const rows = DEFAULT_CATEGORIES.map(([n, kind, classification]) => ({
@@ -48,12 +42,17 @@ export async function createProfile(name: string, color: string) {
 }
 
 export async function updateProfile(id: string, name: string, color: string) {
-  await sql`update profiles set name = ${name.trim()}, color = ${color} where id = ${id}`;
+  const userId = await currentUserId();
+  await sql`
+    update profiles set name = ${name.trim()}, color = ${color}
+    where id = ${id} and user_id = ${userId}
+  `;
   revalidateAll();
 }
 
 export async function deleteProfile(id: string) {
-  await sql`delete from profiles where id = ${id}`;
+  const userId = await currentUserId();
+  await sql`delete from profiles where id = ${id} and user_id = ${userId}`;
   revalidateAll();
 }
 
@@ -67,6 +66,10 @@ export async function createCategory(
 ) {
   const trimmed = name.trim();
   if (!trimmed) return { error: "A category needs a name." };
+  const userId = await currentUserId();
+  if (!(await ownedProfileId(profileId, userId))) {
+    return { error: "Profile not found." };
+  }
   try {
     await sql`
       insert into categories (profile_id, name, kind, classification)
@@ -80,7 +83,12 @@ export async function createCategory(
 }
 
 export async function deleteCategory(id: string) {
-  await sql`delete from categories where id = ${id}`;
+  const userId = await currentUserId();
+  await sql`
+    delete from categories c
+    using profiles p
+    where c.id = ${id} and c.profile_id = p.id and p.user_id = ${userId}
+  `;
   revalidateAll();
 }
 
@@ -93,12 +101,16 @@ export interface EntryInput {
   currency: string;
   description: string;
   datePrecision: DatePrecision;
-  occurredOn: string; // yyyy-MM-dd anchor
+  occurredOn: string;
   recurringTemplateId?: string | null;
 }
 
 export async function createEntry(input: EntryInput) {
   if (!(input.amount > 0)) return { error: "Amount must be above zero." };
+  const userId = await currentUserId();
+  if (!(await ownedProfileId(input.profileId, userId))) {
+    return { error: "Profile not found." };
+  }
   await sql`
     insert into entries (profile_id, category_id, recurring_template_id,
                          amount, currency, description, date_precision, occurred_on)
@@ -111,13 +123,18 @@ export async function createEntry(input: EntryInput) {
   return {};
 }
 
-/** Create or update a ledger row for a recurring template occurrence. */
 export async function upsertTemplateEntry(input: EntryInput & { recurringTemplateId: string }) {
   if (!(input.amount > 0)) return { error: "Amount must be above zero." };
+  const userId = await currentUserId();
+  if (!(await ownedProfileId(input.profileId, userId))) {
+    return { error: "Profile not found." };
+  }
   await sql`
-    delete from recurring_skips
-    where template_id = ${input.recurringTemplateId}
-      and occurred_on = ${input.occurredOn}
+    delete from recurring_skips rs
+    using recurring_templates t, profiles p
+    where rs.template_id = ${input.recurringTemplateId}
+      and rs.occurred_on = ${input.occurredOn}
+      and t.id = rs.template_id and p.id = t.profile_id and p.user_id = ${userId}
   `;
   await sql`
     insert into entries (profile_id, category_id, recurring_template_id,
@@ -137,8 +154,12 @@ export async function upsertTemplateEntry(input: EntryInput & { recurringTemplat
 
 export async function updateEntry(id: string, input: EntryInput) {
   if (!(input.amount > 0)) return { error: "Amount must be above zero." };
+  const userId = await currentUserId();
+  if (!(await ownedProfileId(input.profileId, userId))) {
+    return { error: "Profile not found." };
+  }
   await sql`
-    update entries set
+    update entries e set
       profile_id = ${input.profileId},
       category_id = ${input.categoryId},
       amount = ${input.amount},
@@ -146,19 +167,22 @@ export async function updateEntry(id: string, input: EntryInput) {
       description = ${input.description.trim()},
       date_precision = ${input.datePrecision},
       occurred_on = ${input.occurredOn}
-    where id = ${id}
+    from profiles p
+    where e.id = ${id} and e.profile_id = p.id and p.user_id = ${userId}
   `;
   revalidateAll();
   return {};
 }
 
-/** Returns the deleted row so the client can offer undo. */
 export async function deleteEntry(id: string) {
+  const userId = await currentUserId();
   const [row] = await sql<Record<string, unknown>[]>`
-    delete from entries where id = ${id}
-    returning profile_id, category_id, recurring_template_id, amount::float8 as amount,
-              trim(currency) as currency, description, date_precision,
-              occurred_on::text as occurred_on
+    delete from entries e
+    using profiles p
+    where e.id = ${id} and e.profile_id = p.id and p.user_id = ${userId}
+    returning e.profile_id, e.category_id, e.recurring_template_id, e.amount::float8 as amount,
+              trim(e.currency) as currency, e.description, e.date_precision,
+              e.occurred_on::text as occurred_on
   `;
   if (row?.recurring_template_id) {
     await sql`
@@ -172,6 +196,10 @@ export async function deleteEntry(id: string) {
 }
 
 export async function restoreEntry(row: Record<string, unknown>) {
+  const userId = await currentUserId();
+  if (!(await ownedProfileId(row.profile_id as string, userId))) {
+    return;
+  }
   if (row.recurring_template_id) {
     await sql`
       delete from recurring_skips
@@ -211,6 +239,10 @@ export interface TemplateInput {
 export async function createTemplate(input: TemplateInput) {
   if (!input.name.trim()) return { error: "A template needs a name." };
   if (!(input.amount > 0)) return { error: "Amount must be above zero." };
+  const userId = await currentUserId();
+  if (!(await ownedProfileId(input.profileId, userId))) {
+    return { error: "Profile not found." };
+  }
   await sql`
     insert into recurring_templates
       (profile_id, category_id, name, amount, currency, cadence, day_of_month,
@@ -221,15 +253,19 @@ export async function createTemplate(input: TemplateInput) {
        ${input.startDate}, ${input.endDate}, ${input.isVariable},
        ${input.amountMin}, ${input.amountMax})
   `;
-  await materializeRecurringEntries();
+  await materializeRecurringEntries(userId);
   revalidateAll();
   return {};
 }
 
 export async function updateTemplate(id: string, input: TemplateInput) {
   if (!input.name.trim()) return { error: "A template needs a name." };
+  const userId = await currentUserId();
+  if (!(await ownedProfileId(input.profileId, userId))) {
+    return { error: "Profile not found." };
+  }
   await sql`
-    update recurring_templates set
+    update recurring_templates t set
       profile_id = ${input.profileId},
       category_id = ${input.categoryId},
       name = ${input.name.trim()},
@@ -242,25 +278,32 @@ export async function updateTemplate(id: string, input: TemplateInput) {
       is_variable = ${input.isVariable},
       amount_min = ${input.amountMin},
       amount_max = ${input.amountMax}
-    where id = ${id}
+    from profiles p
+    where t.id = ${id} and t.profile_id = p.id and p.user_id = ${userId}
   `;
-  await materializeRecurringEntries();
+  await materializeRecurringEntries(userId);
   revalidateAll();
   return {};
 }
 
 export async function deleteTemplate(id: string) {
-  await sql`delete from recurring_templates where id = ${id}`;
+  const userId = await currentUserId();
+  await sql`
+    delete from recurring_templates t
+    using profiles p
+    where t.id = ${id} and t.profile_id = p.id and p.user_id = ${userId}
+  `;
   revalidateAll();
 }
 
 /* ---------- settings ---------- */
 
 export async function updateSettings(displayCurrency: string, fxStaleHours: number) {
+  const userId = await currentUserId();
   await sql`
     update app_settings
     set display_currency = ${displayCurrency}, fx_stale_hours = ${fxStaleHours}
-    where id = true
+    where user_id = ${userId}
   `;
   revalidateAll();
 }

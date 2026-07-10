@@ -3,8 +3,8 @@ import { sql } from "./db";
 import { occurrenceDatesUpTo } from "./projections";
 import type { RecurringTemplate } from "./types";
 
-/** Create ledger rows for recurring templates due through today. Idempotent. */
-export async function materializeRecurringEntries(): Promise<void> {
+/** Create ledger rows for one user's recurring templates due through today. */
+export async function materializeRecurringEntries(userId: string): Promise<void> {
   const today = startOfDay(new Date());
 
   const [templates, existing, skips] = await Promise.all([
@@ -19,15 +19,20 @@ export async function materializeRecurringEntries(): Promise<void> {
       from recurring_templates t
       join categories c on c.id = t.category_id
       join profiles p on p.id = t.profile_id
+      where p.user_id = ${userId}
     `,
     sql<{ recurring_template_id: string; occurred_on: string }[]>`
-      select recurring_template_id, occurred_on::text as occurred_on
-      from entries
-      where recurring_template_id is not null
+      select e.recurring_template_id, e.occurred_on::text as occurred_on
+      from entries e
+      join profiles p on p.id = e.profile_id
+      where p.user_id = ${userId} and e.recurring_template_id is not null
     `,
     sql<{ template_id: string; occurred_on: string }[]>`
-      select template_id, occurred_on::text as occurred_on
-      from recurring_skips
+      select rs.template_id, rs.occurred_on::text as occurred_on
+      from recurring_skips rs
+      join recurring_templates t on t.id = rs.template_id
+      join profiles p on p.id = t.profile_id
+      where p.user_id = ${userId}
     `,
   ]);
 

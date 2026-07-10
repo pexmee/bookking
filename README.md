@@ -60,10 +60,12 @@ BOOKKING_VERSION=v1.0.0 docker compose up -d
 BookKing works in the mobile browser. To reach it from a phone or another computer
 on the same Wi‑Fi:
 
-1. **Set up login** — add users to `.env`:
+1. **Set up login** — add users to `.env` (one ledger per username):
    ```bash
    BOOKKING_AUTH_USERS=you:your-password,partner:their-password
    ```
+   `pexme` and `partner` each get their own profiles, entries, and settings. They
+   do not see each other's data.
    Or copy `auth.users.example` to `auth.users`, edit it (one `user:pass` per line),
    and uncomment the `auth.users` volume and `BOOKKING_AUTH_USERS_FILE` lines in
    `docker-compose.yml`.
@@ -150,18 +152,21 @@ normal `git pull` + `docker compose up -d` keeps your volume and skips pending
 migrations.
 
 If a release adds a migration and you skip it, the app may fail on startup or when
-using new features. After upgrading, apply any new files you have not run yet. For
-example, releases with automatic recurring logging require `0002`:
+using new features. After upgrading, apply any new files you have not run yet:
+
+| Migration | Purpose |
+|-------------|---------|
+| `0002_recurring_materialize.sql` | Auto-log recurring items |
+| `0003_users.sql` | Separate ledger per login user |
 
 ```bash
 docker exec -e PGPASSWORD="${POSTGRES_PASSWORD:-bookking}" -i bookking-db-1 \
   psql -U supabase_admin -d postgres \
-  -f /docker-entrypoint-initdb.d/0002_recurring_materialize.sql
+  -f /docker-entrypoint-initdb.d/0003_users.sql
 ```
 
-Use your actual `POSTGRES_PASSWORD` from `.env` if you changed it. The file path
-works after `git pull` because migrations are mounted into the database container.
-Re-running a migration is safe — they use `if not exists` where needed.
+Replace the filename if you still need an earlier migration. Then rebuild the app:
+`docker compose up -d --build`.
 
 **New installs** (clone, first `docker compose up`) get the full schema automatically;
 no manual step.

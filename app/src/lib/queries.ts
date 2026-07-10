@@ -1,5 +1,6 @@
 import { sql } from "./db";
 import { materializeRecurringEntries } from "./materialize";
+import { currentUserId } from "./session";
 import type {
   Category,
   Entry,
@@ -10,35 +11,42 @@ import type {
 
 /** Create any due recurring ledger rows before reads. Safe to call on every request. */
 export async function ensureRecurringMaterialized(): Promise<void> {
-  await materializeRecurringEntries();
+  const userId = await currentUserId();
+  await materializeRecurringEntries(userId);
 }
 
 export async function getSettings(): Promise<Settings> {
+  const userId = await currentUserId();
   const initial = process.env.DEFAULT_DISPLAY_CURRENCY ?? "USD";
   const rows = await sql<Settings[]>`
-    insert into app_settings (id, display_currency)
-    values (true, ${initial})
-    on conflict (id) do update set id = true
+    insert into app_settings (user_id, display_currency)
+    values (${userId}, ${initial})
+    on conflict (user_id) do update set user_id = excluded.user_id
     returning display_currency, theme, fx_stale_hours
   `;
   return { ...rows[0], display_currency: rows[0].display_currency.trim() };
 }
 
 export async function getProfiles(includeArchived = false): Promise<Profile[]> {
+  const userId = await currentUserId();
   return sql<Profile[]>`
     select id, name, color, sort_order, archived_at
     from profiles
-    ${includeArchived ? sql`` : sql`where archived_at is null`}
+    where user_id = ${userId}
+    ${includeArchived ? sql`` : sql`and archived_at is null`}
     order by sort_order, created_at
   `;
 }
 
 export async function getCategories(profileIds: string[] | null): Promise<Category[]> {
+  const userId = await currentUserId();
   return sql<Category[]>`
-    select id, profile_id, name, kind, classification
-    from categories
-    ${profileIds ? sql`where profile_id in ${sql(profileIds)}` : sql``}
-    order by kind desc, name
+    select c.id, c.profile_id, c.name, c.kind, c.classification
+    from categories c
+    join profiles p on p.id = c.profile_id
+    where p.user_id = ${userId}
+    ${profileIds ? sql`and c.profile_id in ${sql(profileIds)}` : sql``}
+    order by c.kind desc, c.name
   `;
 }
 
@@ -60,9 +68,11 @@ export async function getEntriesInRange(
   start: string,
   end: string
 ): Promise<Entry[]> {
+  const userId = await currentUserId();
   return sql<Entry[]>`
     ${entrySelect}
-    where e.period_start <= ${end} and e.period_end >= ${start}
+    where p.user_id = ${userId}
+      and e.period_start <= ${end} and e.period_end >= ${start}
     ${profileIds ? sql`and e.profile_id in ${sql(profileIds)}` : sql``}
     order by e.occurred_on desc, e.created_at desc
   `;
@@ -76,9 +86,10 @@ export interface LedgerFilters {
 }
 
 export async function getLedgerEntries(f: LedgerFilters): Promise<Entry[]> {
+  const userId = await currentUserId();
   return sql<Entry[]>`
     ${entrySelect}
-    where true
+    where p.user_id = ${userId}
     ${f.profileIds ? sql`and e.profile_id in ${sql(f.profileIds)}` : sql``}
     ${f.kind ? sql`and c.kind = ${f.kind}` : sql``}
     ${
@@ -94,6 +105,7 @@ export async function getLedgerEntries(f: LedgerFilters): Promise<Entry[]> {
 export async function getTemplates(
   profileIds: string[] | null
 ): Promise<RecurringTemplate[]> {
+  const userId = await currentUserId();
   return sql<RecurringTemplate[]>`
     select t.id, t.profile_id, t.category_id, t.name,
            t.amount::float8 as amount, trim(t.currency) as currency,
@@ -105,7 +117,8 @@ export async function getTemplates(
     from recurring_templates t
     join categories c on c.id = t.category_id
     join profiles p on p.id = t.profile_id
-    ${profileIds ? sql`where t.profile_id in ${sql(profileIds)}` : sql``}
+    where p.user_id = ${userId}
+    ${profileIds ? sql`and t.profile_id in ${sql(profileIds)}` : sql``}
     order by c.kind desc, t.amount desc
   `;
 }

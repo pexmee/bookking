@@ -6,6 +6,6 @@
 #   BOOKKING_AUTH_USERS=admin:secret,phone:other-secret
 #
 # When any users are configured, the browser will prompt for a login.
-# All users share the same ledger — this is access control, not separate books.
+# Each username gets a separate ledger — profiles, entries, and settings are not shared.
 
 admin:change-me

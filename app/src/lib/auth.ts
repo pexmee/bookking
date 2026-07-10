@@ -35,22 +35,35 @@ function safeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
-/** Returns true when auth is off, or the Basic credentials match a configured user. */
-export function verifyBasicAuth(header: string | null): boolean {
-  const users = parseAuthUsers(authUsersRaw());
-  if (users.size === 0) return true;
-  if (!header?.startsWith("Basic ")) return false;
-
+/** Extract username from a Basic Authorization header. */
+export function parseUsernameFromBasicAuth(header: string | null): string | null {
+  if (!header?.startsWith("Basic ")) return null;
   let decoded: string;
   try {
     decoded = atob(header.slice(6));
   } catch {
+    return null;
+  }
+  const sep = decoded.indexOf(":");
+  if (sep <= 0) return null;
+  return decoded.slice(0, sep);
+}
+
+/** Returns true when auth is off, or the Basic credentials match a configured user. */
+export function verifyBasicAuth(header: string | null): boolean {
+  const users = parseAuthUsers(authUsersRaw());
+  if (users.size === 0) return true;
+
+  const username = parseUsernameFromBasicAuth(header);
+  if (!username) return false;
+
+  let decoded: string;
+  try {
+    decoded = atob(header!.slice(6));
+  } catch {
     return false;
   }
-
   const sep = decoded.indexOf(":");
-  if (sep <= 0) return false;
-  const username = decoded.slice(0, sep);
   const password = decoded.slice(sep + 1);
   const expected = users.get(username);
   if (expected === undefined) return false;

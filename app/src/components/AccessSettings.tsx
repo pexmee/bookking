@@ -48,7 +48,8 @@ export async function AccessSettings() {
             <>
               <p className="stat__sub" style={{ marginTop: 8 }}>
                 HTTP Basic authentication is <strong>on</strong>. Configured users:{" "}
-                {users.join(", ")}. All users share the same ledger.
+                {users.join(", ")}. Each user gets their own ledger, profiles, and
+                settings — sign in with different credentials to switch books.
               </p>
               <p className="stat__sub">
                 Add or change users in <code className="network-url">.env</code> as{" "}
