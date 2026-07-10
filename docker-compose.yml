@@ -1,0 +1,55 @@
+name: bookking
+
+services:
+  db:
+    image: supabase/postgres:15.8.1.085
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bookking}
+      POSTGRES_DB: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./supabase/migrations:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "55432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U supabase_admin -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Trimmed Supabase stack: PostgREST provides the Supabase REST layer.
+  # (Kong/GoTrue/Realtime/Storage are intentionally omitted — the app has no
+  # auth and talks to Postgres server-side.)
+  rest:
+    image: postgrest/postgrest:v12.2.12
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGRST_DB_URI: postgres://supabase_admin:${POSTGRES_PASSWORD:-bookking}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: anon
+    ports:
+      - "55321:3000"
+
+  app:
+    # Pre-built images are published on each GitHub release (ghcr.io).
+    # Developers can still build locally: docker compose up -d --build
+    image: ghcr.io/pexmee/bookking:${BOOKKING_VERSION:-latest}
+    build: ./app
+    pull_policy: missing
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://supabase_admin:${POSTGRES_PASSWORD:-bookking}@db:5432/postgres
+      FX_API_URL: ${FX_API_URL:-https://api.frankfurter.app}
+      DEFAULT_DISPLAY_CURRENCY: ${DEFAULT_DISPLAY_CURRENCY:-USD}
+    ports:
+      - "3000:3000"
+
+volumes:
+  db-data:
