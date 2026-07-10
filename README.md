@@ -53,6 +53,17 @@ BOOKKING_VERSION=v1.0.0 docker compose up -d
 > home network. Do not expose port 3000 to the internet without putting authentication
 > in front of it (e.g. basic auth on a reverse proxy).
 
+### Phone and other devices on your network
+
+BookKing works in the mobile browser — layout adapts with a bottom navigation bar on
+small screens. The app listens on all network interfaces, so other devices on the same
+Wi‑Fi can reach it at `http://<your-computer-ip>:3000` (for example
+`http://192.168.1.42:3000`). Find your LAN address with `ipconfig` (Windows) or
+`ip addr` / `ifconfig` (macOS/Linux). Settings shows the URL when you open BookKing
+from a non-localhost address.
+
+Allow port **3000** through your host firewall if other devices cannot connect.
+
 ## Demo
 ![App Demo](./docs/showcase.gif)
 

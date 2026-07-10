@@ -681,11 +681,248 @@ textarea {
   font-family: var(--font-mono);
 }
 
+.network-url {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--ink);
+  background: var(--surface-sunken);
+  padding: 2px 6px;
+  border-radius: var(--radius-input);
+}
+
+.network-url--link {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 @media (max-width: 980px) {
   .overview-grid {
     grid-template-columns: 1fr;
   }
+}
 
+/* ---------- mobile layout ---------- */
+
+.mobile-header,
+.mobile-nav {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  .shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    min-height: 100dvh;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .mobile-header {
+    display: flex;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding: 12px 16px;
+    padding-top: max(12px, env(safe-area-inset-top));
+    background: var(--parchment);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .mobile-header__wordmark {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 500;
+    border-bottom: 3px double var(--ink);
+    padding-bottom: 6px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .mobile-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .mobile-nav__link {
+    flex: 1;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 4px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    border-top: 2px solid transparent;
+    transition: color 120ms ease-out, background 120ms ease-out;
+  }
+
+  .mobile-nav__link--active {
+    color: var(--ink);
+    border-top-color: var(--copper);
+    background: color-mix(in srgb, var(--surface-sunken) 50%, transparent);
+  }
+
+  .main {
+    padding: 16px 16px 24px;
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+    max-width: none;
+  }
+
+  .page-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .period-selector {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .period-selector__scopes {
+    width: 100%;
+  }
+
+  .period-selector__scope {
+    flex: 1;
+    padding: 10px 8px;
+  }
+
+  .period-selector__nav {
+    justify-content: space-between;
+  }
+
+  .period-selector__label {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .period-selector__arrow {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .quick-add {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .quick-add > .field:first-child,
+  .quick-add > .btn,
+  .quick-add > .form-error,
+  .quick-add > label[style] {
+    grid-column: 1 / -1;
+  }
+
+  .quick-add .field {
+    min-width: 0;
+  }
+
+  .quick-add .btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  .quick-add__kind button,
+  .precision-toggle button {
+    min-height: 44px;
+    flex: 1;
+  }
+
+  .btn,
+  .profile-filter__pill {
+    min-height: 44px;
+  }
+
+  .profile-filter__pill {
+    padding: 8px 14px;
+  }
+
+  .ledger-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ledger-controls .input {
+    width: 100%;
+  }
+
+  .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -18px;
+    padding: 0 18px;
+  }
+
+  .table {
+    min-width: 520px;
+  }
+
+  .table th,
+  .table td {
+    padding: 10px 8px;
+  }
+
+  .breakdown__row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .breakdown__pct {
+    text-align: left;
+  }
+
+  .stat__value {
+    font-size: 1.75rem;
+  }
+
+  .toast {
+    left: 16px;
+    right: 16px;
+    transform: none;
+    bottom: calc(72px + env(safe-area-inset-bottom));
+  }
+
+  .panel__body > div[style*="flex"] {
+    flex-wrap: wrap;
+  }
+
+  .input,
+  .select {
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 980px) {
   .shell {
     grid-template-columns: 1fr;
   }

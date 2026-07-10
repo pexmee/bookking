@@ -107,6 +107,7 @@ function TemplateGroup({
         {templates.length === 0 ? (
           <p className="empty-state">{emptyCopy}</p>
         ) : (
+          <div className="table-scroll">
           <table className="table" style={{ marginTop: 10 }}>
             <thead>
               <tr>
@@ -129,6 +130,7 @@ function TemplateGroup({
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

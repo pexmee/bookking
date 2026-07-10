@@ -49,7 +49,7 @@ services:
       FX_API_URL: ${FX_API_URL:-https://api.frankfurter.app}
       DEFAULT_DISPLAY_CURRENCY: ${DEFAULT_DISPLAY_CURRENCY:-USD}
     ports:
-      - "3000:3000"
+      - "0.0.0.0:3000:3000"
 
 volumes:
   db-data:

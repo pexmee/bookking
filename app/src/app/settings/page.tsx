@@ -1,6 +1,7 @@
 import { formatDistanceToNowStrict } from "date-fns";
 import type { Metadata } from "next";
 import { SettingsForm } from "@/components/SettingsForm";
+import { NetworkAccess } from "@/components/NetworkAccess";
 import { getRates } from "@/lib/fx";
 import { getSettings } from "@/lib/queries";
 
@@ -18,6 +19,8 @@ export default async function SettingsPage() {
       </div>
 
       <SettingsForm settings={settings} />
+
+      <NetworkAccess />
 
       <div className="panel section">
         <div className="panel__body">
