@@ -1,3 +1,8 @@
+/** Runtime env — bracket access so Docker can inject users after build. */
+function authUsersRaw(): string | undefined {
+  return process.env["BOOKKING_AUTH_USERS"];
+}
+
 /** Parse `user:pass,user2:pass2` from BOOKKING_AUTH_USERS. Password may contain `:`. */
 export function parseAuthUsers(raw: string | undefined): Map<string, string> {
   const users = new Map<string, string>();
@@ -13,11 +18,11 @@ export function parseAuthUsers(raw: string | undefined): Map<string, string> {
 }
 
 export function isAuthEnabled(): boolean {
-  return parseAuthUsers(process.env.BOOKKING_AUTH_USERS).size > 0;
+  return parseAuthUsers(authUsersRaw()).size > 0;
 }
 
 export function authUsernames(): string[] {
-  return [...parseAuthUsers(process.env.BOOKKING_AUTH_USERS).keys()].sort();
+  return [...parseAuthUsers(authUsersRaw()).keys()].sort();
 }
 
 function safeEqual(a: string, b: string): boolean {
@@ -32,7 +37,7 @@ function safeEqual(a: string, b: string): boolean {
 
 /** Returns true when auth is off, or the Basic credentials match a configured user. */
 export function verifyBasicAuth(header: string | null): boolean {
-  const users = parseAuthUsers(process.env.BOOKKING_AUTH_USERS);
+  const users = parseAuthUsers(authUsersRaw());
   if (users.size === 0) return true;
   if (!header?.startsWith("Basic ")) return false;
 

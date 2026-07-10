@@ -74,7 +74,8 @@ on the same Wi‑Fi:
      - "0.0.0.0:3000:3000   # was 127.0.0.1:3000:3000
    ```
 
-3. **Restart:** `docker compose up -d`
+3. **Restart:** `docker compose up -d --build` (the `--build` flag is required so
+   the app image includes the login gate — a plain `up -d` reuses an old image).
 
 4. On the phone, open `http://<your-computer-ip>:3000` (e.g. `http://192.168.1.42:3000`).
    Find your IP with `ipconfig` (Windows) or `ip addr` / `ifconfig` (macOS/Linux).
