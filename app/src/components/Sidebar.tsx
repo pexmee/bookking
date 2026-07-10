@@ -40,6 +40,14 @@ export function Sidebar() {
         Kept on your own machine.
         <br />
         No account, no cloud.
+        <a
+          href="https://github.com/pexmee"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="sidebar__credit"
+        >
+          Made by pexmee
+        </a>
       </div>
     </aside>
   );

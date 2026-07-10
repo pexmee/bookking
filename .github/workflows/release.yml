@@ -47,3 +47,4 @@ jobs:
           files: |
             docker-compose.yml
             .env.example
+            LICENSE

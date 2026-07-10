@@ -294,6 +294,20 @@ textarea {
   color: var(--ink-faint);
 }
 
+.sidebar__credit {
+  display: inline-block;
+  margin-top: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--line-strong);
+  transition: color 120ms ease-out, text-decoration-color 120ms ease-out;
+}
+
+.sidebar__credit:hover {
+  color: var(--ink-muted);
+  text-decoration-color: var(--copper);
+}
+
 .main {
   padding: 32px 40px 64px;
   max-width: 1240px;

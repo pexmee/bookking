@@ -16,6 +16,7 @@
 <p align="center">
   <a href="https://github.com/pexmee/bookking/releases/latest"><img src="https://img.shields.io/github/v/release/pexmee/bookking?style=flat-square&color=B87333" alt="Release"/></a>
   <a href="https://github.com/pexmee/bookking/pkgs/container/bookking"><img src="https://img.shields.io/badge/container-ghcr.io-2C3E50?style=flat-square" alt="Container registry"/></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-6B7F6A?style=flat-square" alt="MIT License"/></a>
 </p>
 
 ---
@@ -92,3 +93,7 @@ cd app && npm install && npm run dev
 ```
 
 The dev server connects to Postgres on `localhost:55432` by default.
+
+## License
+
+[MIT](LICENSE)
