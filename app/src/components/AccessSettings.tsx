@@ -4,8 +4,8 @@ import { headers } from "next/headers";
 /** Network binding and login status for Settings. */
 export async function AccessSettings() {
   const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
-  const proto = h.get("x-forwarded-proto") ?? "http";
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost";
+  const proto = h.get("x-forwarded-proto") ?? "https";
   const url = `${proto}://${host}`;
   const onLocalhost = host.startsWith("localhost") || host.startsWith("127.0.0.1");
   const authOn = isAuthEnabled();
@@ -17,17 +17,13 @@ export async function AccessSettings() {
         <div className="panel__body">
           <h2>Access</h2>
           <p className="stat__sub" style={{ marginTop: 8 }}>
-            By default BookKing binds to <strong>localhost only</strong> — other devices
-            on your network cannot reach it. To use BookKing from a phone on the same
-            Wi‑Fi, edit <code className="network-url">docker-compose.yml</code>: change
-            the app port from{" "}
-            <code className="network-url">127.0.0.1:3000:3000</code> to{" "}
-            <code className="network-url">0.0.0.0:3000:3000</code>, then run{" "}
-            <code className="network-url">docker compose up -d</code>. Open{" "}
-            <code className="network-url">http://&lt;your-pc-ip&gt;:3000</code> on the
-            phone (find the IP with <code className="network-url">ipconfig</code> or{" "}
-            <code className="network-url">ip addr</code>). Allow port 3000 through your
-            firewall if needed.
+            BookKing is served over <strong>HTTPS only</strong> (port 443 via Caddy).
+            By default it binds to <strong>localhost</strong>. To use it from a phone
+            on the same Wi‑Fi: run <code className="network-url">scripts/setup-certs</code>,
+            install the mkcert root CA on the phone once, set login users in{" "}
+            <code className="network-url">.env</code>, then change the{" "}
+            <strong>caddy</strong> port in <code className="network-url">docker-compose.yml</code>{" "}
+            to <code className="network-url">0.0.0.0:443:443</code> and restart.
           </p>
           {!onLocalhost && (
             <p className="stat__sub">
@@ -38,6 +34,10 @@ export async function AccessSettings() {
               .
             </p>
           )}
+          <p className="stat__sub">
+            Re-run setup-certs when your LAN IP changes or before certificates expire
+            (~2 years). See README for Let&apos;s Encrypt as an alternative.
+          </p>
         </div>
       </div>
 
@@ -54,10 +54,7 @@ export async function AccessSettings() {
               <p className="stat__sub">
                 Add or change users in <code className="network-url">.env</code> as{" "}
                 <code className="network-url">BOOKKING_AUTH_USERS</code> (comma-separated{" "}
-                <code className="network-url">user:pass</code> pairs) or copy{" "}
-                <code className="network-url">auth.users.example</code> to{" "}
-                <code className="network-url">auth.users</code>, uncomment the volume in{" "}
-                <code className="network-url">docker-compose.yml</code>, and restart.
+                <code className="network-url">user:pass</code> pairs), then restart.
               </p>
             </>
           ) : (
@@ -65,15 +62,11 @@ export async function AccessSettings() {
               No login configured — anyone who can reach the app can use it.{" "}
               <strong>Set up users before enabling LAN access.</strong> Add{" "}
               <code className="network-url">BOOKKING_AUTH_USERS=you:your-password</code> to{" "}
-              <code className="network-url">.env</code> (or use an{" "}
-              <code className="network-url">auth.users</code> file — see{" "}
-              <code className="network-url">auth.users.example</code>), then restart the
-              app container.
+              <code className="network-url">.env</code>, then restart.
             </p>
           )}
           <p className="stat__sub">
-            Do not expose port 3000 to the internet. Basic auth is fine for a home
-            network; use a reverse proxy with TLS if you need remote access.
+            Do not expose port 443 to the internet without login configured.
           </p>
         </div>
       </div>

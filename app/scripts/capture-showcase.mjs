@@ -13,7 +13,7 @@ const APP_DIR = resolve(__dirname, "..");
 const ROOT = resolve(APP_DIR, "..");
 const OUT_DIR = join(ROOT, "docs");
 const TMP_DIR = join(APP_DIR, "scripts", ".capture-tmp");
-const BASE_URL = process.env.BOOKKING_URL ?? "http://localhost:3000";
+const BASE_URL = process.env.BOOKKING_URL ?? "https://localhost";
 const PERIOD = "2026-07";
 
 const VIEWPORT = { width: 1280, height: 800 };
@@ -74,6 +74,7 @@ async function main() {
     deviceScaleFactor: 2,
     recordVideo: { dir: TMP_DIR, size: VIEWPORT },
     colorScheme: "light",
+    ignoreHTTPSErrors: true,
   });
   const page = await context.newPage();
 

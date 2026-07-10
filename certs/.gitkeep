@@ -1,0 +1,2 @@
+# TLS certificates are generated here by scripts/setup-certs.
+# Do not commit *.pem files.

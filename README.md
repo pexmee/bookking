@@ -29,24 +29,25 @@ open it to your home network with login.
 
 ## Quick start
 
-Requires [Docker](https://docs.docker.com/get-docker/). Clone the repository and start
-the stack:
+Requires [Docker](https://docs.docker.com/get-docker/) and [mkcert](https://github.com/FiloSottile/mkcert#installation)
+(for locally trusted HTTPS — no browser warnings once set up).
 
 ```bash
 git clone https://github.com/pexmee/bookking.git
 cd bookking
+./scripts/setup-certs.sh          # Windows: .\scripts\setup-certs.ps1
 docker compose pull
 docker compose up -d
 ```
 
-Open [http://localhost:3000](http://localhost:3000). On first start, BookKing creates
-the database, applies the schema, and seeds a starter profile with sensible categories.
-No build step required.
+Open **[https://localhost](https://localhost)** (HTTPS only — there is no HTTP endpoint).
+On first start, BookKing creates the database, applies the schema, and seeds a starter
+profile with sensible categories.
 
 To pin a specific [release](https://github.com/pexmee/bookking/releases):
 
 ```bash
-BOOKKING_VERSION=v1.0.0 docker compose pull app
+BOOKKING_VERSION=v1.0.0 docker compose pull app caddy
 BOOKKING_VERSION=v1.0.0 docker compose up -d
 ```
 
@@ -57,34 +58,50 @@ BOOKKING_VERSION=v1.0.0 docker compose up -d
 
 ## Access from your phone (optional)
 
-BookKing works in the mobile browser. To reach it from a phone or another computer
-on the same Wi‑Fi:
+BookKing works in the mobile browser over **HTTPS only**. To reach it from a phone or
+another computer on the same Wi‑Fi:
 
 1. **Set up login** — add users to `.env` (one ledger per username):
    ```bash
    BOOKKING_AUTH_USERS=you:your-password,partner:their-password
    ```
-   `pexme` and `partner` each get their own profiles, entries, and settings. They
-   do not see each other's data.
-   Or copy `auth.users.example` to `auth.users`, edit it (one `user:pass` per line),
-   and uncomment the `auth.users` volume and `BOOKKING_AUTH_USERS_FILE` lines in
-   `docker-compose.yml`.
+   Each username gets their own profiles, entries, and settings.
 
-2. **Allow LAN connections** — in `docker-compose.yml`, change the app port binding:
+2. **Generate TLS certificates** (if you have not already):
+   ```bash
+   ./scripts/setup-certs.sh    # Windows: .\scripts\setup-certs.ps1
+   ```
+   Re-run when your LAN IP changes or before the cert expires (~2 years). The script
+   prints where `rootCA.pem` lives.
+
+3. **Trust the certificate on your phone** (one time per device — this removes browser
+   warnings):
+   - Copy `rootCA.pem` from the path printed by setup-certs (run `mkcert -CAROOT`).
+   - **iOS:** AirDrop or email the file → install profile → Settings → General →
+     About → Certificate Trust Settings → enable full trust for the mkcert root.
+   - **Android:** Settings → Security → Install a certificate → CA certificate →
+     pick `rootCA.pem`.
+
+4. **Allow LAN connections** — in `docker-compose.yml`, change the **caddy** port:
    ```yaml
    ports:
-     - "0.0.0.0:3000:3000   # was 127.0.0.1:3000:3000
+     - "0.0.0.0:443:443   # was 127.0.0.1:443:443
    ```
 
-3. **Restart:** `docker compose up -d --build` (the `--build` flag is required so
-   the app image includes the login gate — a plain `up -d` reuses an old image).
+5. **Restart:** `docker compose up -d --build`
 
-4. On the phone, open `http://<your-computer-ip>:3000` (e.g. `http://192.168.1.42:3000`).
-   Find your IP with `ipconfig` (Windows) or `ip addr` / `ifconfig` (macOS/Linux).
-   The browser will ask for a username and password.
+6. On the phone, open `https://<your-computer-ip>` (e.g. `https://192.168.1.42`).
+   Find your IP with `ipconfig` (Windows) or `ip addr` (macOS/Linux). The browser
+   will ask for your BookKing username and password.
 
-Allow port **3000** through your host firewall if other devices still cannot connect.
-Do not expose port 3000 to the internet — basic auth is for a trusted home network only.
+Allow port **443** through your host firewall if other devices cannot connect.
+
+**Alternative — public domain:** if you have a domain pointing at this machine, set
+`BOOKKING_DOMAIN=bookking.example.com` and `ACME_EMAIL=you@example.com` in `.env`.
+Caddy obtains and renews a Let's Encrypt certificate automatically (no mkcert on
+phones). Port 443 must be reachable for ACME validation.
+
+Do not expose BookKing to the internet without login configured.
 
 Settings shows whether login is configured and lists usernames (not passwords).
 
@@ -112,7 +129,8 @@ Settings shows whether login is configured and lists usernames (not passwords).
 
 Optional: copy `.env.example` to `.env` to change the database password, FX API
 endpoint, default display currency, or configure login users (`BOOKKING_AUTH_USERS`).
-You can also change the display currency later in the app under Settings.
+TLS uses mkcert by default (`scripts/setup-certs`); or set `BOOKKING_DOMAIN` for
+Let's Encrypt. You can also change the display currency later in the app under Settings.
 
 ## Data persistence, stopping, and upgrades
 
@@ -132,7 +150,7 @@ docker compose down
 ```bash
 cd bookking
 git pull
-docker compose pull app          # or: docker compose pull
+docker compose pull app caddy          # or: docker compose pull
 docker compose up -d
 ```
 
