@@ -4,7 +4,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 import type { Profile } from "@/lib/types";
 import type { Period, PeriodScope } from "@/lib/dates";
-import { periodKeyForScope } from "@/lib/dates";
+import { currentPeriodKey } from "@/lib/dates";
 
 function useSetParam() {
   const router = useRouter();
@@ -68,7 +68,7 @@ export function PeriodSelector({ period }: { period: Period }) {
           <button
             key={s.value}
             className={`period-selector__scope${period.scope === s.value ? " is-active" : ""}`}
-            onClick={() => setParam({ period: periodKeyForScope(period, s.value) })}
+            onClick={() => setParam({ period: currentPeriodKey(s.value) })}
           >
             {s.label}
           </button>

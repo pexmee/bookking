@@ -53,6 +53,9 @@ BOOKKING_VERSION=v1.0.0 docker compose up -d
 > home network. Do not expose port 3000 to the internet without putting authentication
 > in front of it (e.g. basic auth on a reverse proxy).
 
+## Demo
+![App Demo](./docs/showcase.gif)
+
 ## Features
 
 - **Ledger** — log income and spending in seconds. Press `n` to add an entry, `/` to

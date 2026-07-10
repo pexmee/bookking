@@ -81,12 +81,13 @@ function build(scope: PeriodScope, start: Date): Period {
   };
 }
 
-/** Convert current period to a sibling scope, anchored on the period start. */
-export function periodKeyForScope(p: Period, scope: PeriodScope): string {
-  if (scope === "year") return format(p.start, "yyyy");
+/** Period key for the scope that contains today (used by Month/Quarter/Year toggles). */
+export function currentPeriodKey(scope: PeriodScope): string {
+  const now = new Date();
+  if (scope === "year") return format(now, "yyyy");
   if (scope === "quarter")
-    return `${format(p.start, "yyyy")}-Q${format(p.start, "Q")}`;
-  return format(p.start, "yyyy-MM");
+    return `${format(now, "yyyy")}-Q${format(now, "Q")}`;
+  return format(now, "yyyy-MM");
 }
 
 export function isoDate(d: Date): string {
