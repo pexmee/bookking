@@ -10,7 +10,7 @@
 
 <p align="center">
   <strong>Track income and spending across profiles and currencies.</strong><br/>
-  <sub>Self-hosted · No account · Pre-built Docker image</sub>
+  <sub>Self-hosted · Local-first · Optional login</sub>
 </p>
 
 <p align="center">
@@ -24,7 +24,8 @@
 BookKing is a self-hosted book of accounts. Track recurring and one-off income and
 expenses across multiple profiles (personal, business, whatever you keep separate), in
 any currency, and see where the money went — all on your own machine, with no account
-and no cloud.
+and no cloud. By default it is reachable only on this machine; you can optionally
+open it to your home network with login.
 
 ## Quick start
 
@@ -49,20 +50,40 @@ BOOKKING_VERSION=v1.0.0 docker compose pull app
 BOOKKING_VERSION=v1.0.0 docker compose up -d
 ```
 
-> **Security:** BookKing has no login by design. It is meant for localhost or a trusted
-> home network. Do not expose port 3000 to the internet without putting authentication
-> in front of it (e.g. basic auth on a reverse proxy).
+> **Security:** By default BookKing binds to **localhost only** — other devices on
+> your network cannot reach it, and no login is required. See [Access from your
+> phone](#access-from-your-phone-optional) if you want to use it from a phone on the
+> same Wi‑Fi.
 
-### Phone and other devices on your network
+## Access from your phone (optional)
 
-BookKing works in the mobile browser — layout adapts with a bottom navigation bar on
-small screens. The app listens on all network interfaces, so other devices on the same
-Wi‑Fi can reach it at `http://<your-computer-ip>:3000` (for example
-`http://192.168.1.42:3000`). Find your LAN address with `ipconfig` (Windows) or
-`ip addr` / `ifconfig` (macOS/Linux). Settings shows the URL when you open BookKing
-from a non-localhost address.
+BookKing works in the mobile browser. To reach it from a phone or another computer
+on the same Wi‑Fi:
 
-Allow port **3000** through your host firewall if other devices cannot connect.
+1. **Set up login** — add users to `.env`:
+   ```bash
+   BOOKKING_AUTH_USERS=you:your-password,partner:their-password
+   ```
+   Or copy `auth.users.example` to `auth.users`, edit it (one `user:pass` per line),
+   and uncomment the `auth.users` volume and `BOOKKING_AUTH_USERS_FILE` lines in
+   `docker-compose.yml`.
+
+2. **Allow LAN connections** — in `docker-compose.yml`, change the app port binding:
+   ```yaml
+   ports:
+     - "0.0.0.0:3000:3000   # was 127.0.0.1:3000:3000
+   ```
+
+3. **Restart:** `docker compose up -d`
+
+4. On the phone, open `http://<your-computer-ip>:3000` (e.g. `http://192.168.1.42:3000`).
+   Find your IP with `ipconfig` (Windows) or `ip addr` / `ifconfig` (macOS/Linux).
+   The browser will ask for a username and password.
+
+Allow port **3000** through your host firewall if other devices still cannot connect.
+Do not expose port 3000 to the internet — basic auth is for a trusted home network only.
+
+Settings shows whether login is configured and lists usernames (not passwords).
 
 ## Demo
 ![App Demo](./docs/showcase.gif)
@@ -87,8 +108,8 @@ Allow port **3000** through your host firewall if other devices cannot connect.
 ## Configuration
 
 Optional: copy `.env.example` to `.env` to change the database password, FX API
-endpoint, or default display currency. You can also change the display currency later
-in the app under Settings.
+endpoint, default display currency, or configure login users (`BOOKKING_AUTH_USERS`).
+You can also change the display currency later in the app under Settings.
 
 ## Data persistence, stopping, and upgrades
 
