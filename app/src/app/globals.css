@@ -218,6 +218,58 @@ textarea {
   font-weight: 500;
   border-bottom: 3px double var(--ink);
   padding-bottom: 10px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+/* BookKing wordmark — big K, crown as the i-dot */
+.wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: inherit;
+}
+
+.wordmark__book {
+  font-size: 1em;
+}
+
+.wordmark__k {
+  font-size: 1.42em;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+}
+
+.wordmark__i {
+  position: relative;
+  display: inline-block;
+  font-size: 1em;
+  width: 0.28em;
+  margin: 0 0.02em;
+}
+
+.wordmark__i-stem {
+  font-size: 1em;
+  /* dotless i — the crown is the tittle */
+  font-feature-settings: "locl" 1;
+}
+
+.wordmark__crown {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% - 0.12em);
+  width: 0.72em;
+  height: 0.48em;
+  transform: translateX(-50%);
+  color: var(--copper);
+}
+
+.wordmark__tail {
+  font-size: 1em;
 }
 
 .sidebar__nav {

@@ -1,10 +1,10 @@
-# Bookking Design System - "Editorial Ledger"
+# BookKing Design System — "Editorial Ledger"
 
 This document is the gate for every screen. If a change violates a rule here, the change is wrong.
 
 ## Direction
 
-Bookking looks like a well-set financial journal, not a SaaS landing page. Quiet, precise,
+BookKing looks like a well-set financial journal, not a SaaS landing page. Quiet, precise,
 dense where density helps, generous where the numbers need room. References:
 
 - Copilot Money - the quiet confidence of a premium ledger; nothing shouts.

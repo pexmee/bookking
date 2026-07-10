@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="640" height="200" viewBox="0 0 640 200" role="img" aria-label="Bookking">
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="200" viewBox="0 0 640 200" role="img" aria-label="BookKing">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#FCFBF8"/>
@@ -11,7 +11,15 @@
   <g transform="translate(40, 52)">
     <line x1="0" y1="0" x2="64" y2="0" stroke="#1A1814" stroke-width="2"/>
     <line x1="0" y1="6" x2="64" y2="6" stroke="#1A1814" stroke-width="2"/>
-    <text x="0" y="48" fill="#1A1814" font-family="Georgia, serif" font-size="42" letter-spacing="-0.5">Bookking</text>
+    <text x="0" y="48" fill="#1A1814" font-family="Georgia, serif" font-weight="500" letter-spacing="-0.5">
+      <tspan font-size="42">Book</tspan>
+      <tspan font-size="58" font-weight="600" dx="4">K</tspan>
+      <tspan font-size="42" dx="3">&#305;</tspan>
+      <tspan font-size="42">ng</tspan>
+    </text>
+    <g transform="translate(186, 6)" fill="#B87333">
+      <path d="M0 11h17v2H0v-2zm1.2-2 2.2-5.5 2.7 3.3L8.5 3l2.5 3.6 2.7-3.3 2.2 5.5H1.2z"/>
+    </g>
     <line x1="0" y1="62" x2="220" y2="62" stroke="#B87333" stroke-width="1.25"/>
     <text x="0" y="92" fill="#6E675C" font-family="Georgia, serif" font-size="16" font-style="italic">A self-hosted book of accounts</text>
   </g>

@@ -11,8 +11,8 @@ import { Sidebar } from "@/components/Sidebar";
 
 export const metadata: Metadata = {
   title: {
-    default: "Bookking",
-    template: "%s · Bookking",
+    default: "BookKing",
+    template: "%s · BookKing",
   },
   description: "A self-hosted book of accounts for income and expenses.",
 };

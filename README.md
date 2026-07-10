@@ -1,8 +1,11 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/banner-dark.svg"/>
-    <img src="docs/banner.svg" alt="Bookking — a self-hosted book of accounts" width="100%"/>
-  </picture>
+  <a href="https://github.com/pexmee/bookking">
+    <img
+      src="https://raw.githubusercontent.com/pexmee/bookking/master/docs/banner.png"
+      alt="BookKing — a self-hosted book of accounts"
+      width="100%"
+    />
+  </a>
 </p>
 
 <p align="center">
@@ -11,7 +14,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/pexmee/bookking/releases"><img src="https://img.shields.io/github/v/release/pexmee/bookking?label=release&style=flat-square&color=B87333" alt="Release"/></a>
+  <a href="https://github.com/pexmee/bookking/releases/latest"><img src="https://img.shields.io/github/v/release/pexmee/bookking?style=flat-square&color=B87333" alt="Release"/></a>
   <a href="https://github.com/pexmee/bookking/pkgs/container/bookking"><img src="https://img.shields.io/badge/container-ghcr.io-2C3E50?style=flat-square" alt="Container registry"/></a>
 </p>
 
@@ -60,7 +63,7 @@ first start), the Supabase REST layer, and the app.
 docker compose up -d --build
 ```
 
-> **A deliberate note on security:** Bookking has no authentication by design. It is
+> **A deliberate note on security:** BookKing has no authentication by design. It is
 > meant for localhost or a trusted home network. Do not expose port 3000 to the
 > internet without putting basic auth on a reverse proxy in front of it.
 

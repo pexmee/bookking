@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Wordmark } from "./Wordmark";
 
 const NAV = [
   { href: "/", label: "Overview" },
@@ -16,7 +17,7 @@ export function Sidebar() {
   return (
     <aside className="sidebar">
       <Link href="/" className="sidebar__wordmark">
-        Bookking
+        <Wordmark />
       </Link>
       <nav className="sidebar__nav" aria-label="Primary">
         {NAV.map((item) => {
