@@ -1,0 +1,2 @@
+# Optional: mkcert files (cert.pem, key.pem) from scripts/setup-certs override auto-generated TLS.
+# Do not commit *.pem files.

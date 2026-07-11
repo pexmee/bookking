@@ -53,7 +53,8 @@ export function LedgerTable({ entries, showProfile }: Props) {
 
   return (
     <>
-      <table className="table">
+      <div className="table-scroll">
+        <table className="table">
         <thead>
           <tr>
             <th style={{ width: 120 }}>When</th>
@@ -118,6 +119,7 @@ export function LedgerTable({ entries, showProfile }: Props) {
           ))}
         </tbody>
       </table>
+      </div>
 
       {undoRow && (
         <div className="toast" role="status">

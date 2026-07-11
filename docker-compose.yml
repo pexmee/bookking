@@ -11,16 +11,13 @@ services:
       - db-data:/var/lib/postgresql/data
       - ./supabase/migrations:/docker-entrypoint-initdb.d:ro
     ports:
-      - "55432:5432"
+      - "127.0.0.1:55432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U supabase_admin -d postgres"]
       interval: 5s
       timeout: 5s
       retries: 10
 
-  # Trimmed Supabase stack: PostgREST provides the Supabase REST layer.
-  # (Kong/GoTrue/Realtime/Storage are intentionally omitted — the app has no
-  # auth and talks to Postgres server-side.)
   rest:
     image: postgrest/postgrest:v12.2.12
     restart: unless-stopped
@@ -32,11 +29,9 @@ services:
       PGRST_DB_SCHEMAS: public
       PGRST_DB_ANON_ROLE: anon
     ports:
-      - "55321:3000"
+      - "127.0.0.1:55321:3000"
 
   app:
-    # Pre-built images are published on each GitHub release (ghcr.io).
-    # Developers can still build locally: docker compose up -d --build
     image: ghcr.io/pexmee/bookking:${BOOKKING_VERSION:-latest}
     build: ./app
     pull_policy: missing
@@ -48,8 +43,28 @@ services:
       DATABASE_URL: postgres://supabase_admin:${POSTGRES_PASSWORD:-bookking}@db:5432/postgres
       FX_API_URL: ${FX_API_URL:-https://api.frankfurter.app}
       DEFAULT_DISPLAY_CURRENCY: ${DEFAULT_DISPLAY_CURRENCY:-USD}
+      BOOKKING_AUTH_USERS: ${BOOKKING_AUTH_USERS:-}
+    expose:
+      - "3000"
+
+  caddy:
+    build: ./caddy
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      BOOKKING_DOMAIN: ${BOOKKING_DOMAIN:-}
+      ACME_EMAIL: ${ACME_EMAIL:-}
+      BOOKKING_TLS_SANS: ${BOOKKING_TLS_SANS:-}
     ports:
-      - "3000:3000"
+      # Localhost only (default). For LAN access change to "0.0.0.0:443:443" — see README.
+      - "0.0.0.0:443:443"
+    volumes:
+      - ./certs:/etc/certs:ro
+      - caddy-data:/data
+      - caddy-config:/config
 
 volumes:
   db-data:
+  caddy-data:
+  caddy-config:

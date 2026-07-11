@@ -1,4 +1,6 @@
 .env
+auth.users
+certs/*.pem
 node_modules/
 .next/
 *.log

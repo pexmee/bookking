@@ -1,0 +1,11 @@
+# Copy to auth.users and add real credentials when enabling LAN access.
+# One username:password per line. Lines starting with # are ignored.
+# Passwords may contain colons — only the first colon separates user from pass.
+#
+# Or set the same pairs in .env instead (comma-separated, no spaces):
+#   BOOKKING_AUTH_USERS=admin:secret,phone:other-secret
+#
+# When any users are configured, the browser will prompt for a login.
+# Each username gets a separate ledger — profiles, entries, and settings are not shared.
+
+admin:change-me
