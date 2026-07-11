@@ -1,5 +1,6 @@
 #Requires -Version 5.1
-# Generate trusted local HTTPS certificates with mkcert.
+# Optional: generate browser-trusted local HTTPS certificates with mkcert.
+# BookKing auto-generates TLS on first start without this step.
 # Install mkcert first: https://github.com/FiloSottile/mkcert#installation
 #   winget install FiloSottile.mkcert
 #   — or — choco install mkcert

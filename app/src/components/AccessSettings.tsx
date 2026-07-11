@@ -18,12 +18,14 @@ export async function AccessSettings() {
           <h2>Access</h2>
           <p className="stat__sub" style={{ marginTop: 8 }}>
             BookKing is served over <strong>HTTPS only</strong> (port 443 via Caddy).
-            By default it binds to <strong>localhost</strong>. To use it from a phone
-            on the same Wi‑Fi: run <code className="network-url">scripts/setup-certs</code>,
-            install the mkcert root CA on the phone once, set login users in{" "}
-            <code className="network-url">.env</code>, then change the{" "}
-            <strong>caddy</strong> port in <code className="network-url">docker-compose.yml</code>{" "}
-            to <code className="network-url">0.0.0.0:443:443</code> and restart.
+            TLS certificates are created automatically on first start. By default the
+            app binds to <strong>localhost</strong>. To use it from a phone on the same
+            Wi‑Fi: set login users in <code className="network-url">.env</code>, change
+            the <strong>caddy</strong> port in{" "}
+            <code className="network-url">docker-compose.yml</code> to{" "}
+            <code className="network-url">0.0.0.0:443:443</code>, and restart. Optional:{" "}
+            <code className="network-url">scripts/setup-certs</code> for browser-trusted
+            certs on your devices.
           </p>
           {!onLocalhost && (
             <p className="stat__sub">
@@ -35,8 +37,11 @@ export async function AccessSettings() {
             </p>
           )}
           <p className="stat__sub">
-            Re-run setup-certs when your LAN IP changes or before certificates expire
-            (~2 years). See README for Let&apos;s Encrypt as an alternative.
+            Auto-generated certs are valid for ~2 years. For trusted local HTTPS or
+            after a LAN IP change, run setup-certs or set{" "}
+            <code className="network-url">BOOKKING_TLS_SANS</code> in{" "}
+            <code className="network-url">.env</code>. See README for Let&apos;s Encrypt
+            as an alternative.
           </p>
         </div>
       </div>

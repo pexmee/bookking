@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Generate trusted local HTTPS certificates with mkcert.
+# Optional: generate browser-trusted local HTTPS certificates with mkcert.
+# BookKing auto-generates TLS on first start without this step.
 # Install mkcert first: https://github.com/FiloSottile/mkcert#installation
 
 set -euo pipefail

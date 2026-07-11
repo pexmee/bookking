@@ -48,22 +48,21 @@ services:
       - "3000"
 
   caddy:
-    image: caddy:2-alpine
+    build: ./caddy
     restart: unless-stopped
     depends_on:
       - app
     environment:
       BOOKKING_DOMAIN: ${BOOKKING_DOMAIN:-}
       ACME_EMAIL: ${ACME_EMAIL:-}
+      BOOKKING_TLS_SANS: ${BOOKKING_TLS_SANS:-}
     ports:
       # Localhost only (default). For LAN access change to "0.0.0.0:443:443" — see README.
       - "0.0.0.0:443:443"
     volumes:
-      - ./caddy/entrypoint.sh:/entrypoint.sh:ro
       - ./certs:/etc/certs:ro
       - caddy-data:/data
       - caddy-config:/config
-    entrypoint: ["/bin/sh", "/entrypoint.sh"]
 
 volumes:
   db-data:
