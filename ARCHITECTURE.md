@@ -94,9 +94,9 @@ flowchart TD
   session[app/src/lib/session.ts]
   username{Authenticated username?}
   local[local user\nwhen auth disabled]
-  ensure[ensureUser(username)]
-  seed[Create book_users row,\nseed profile/categories,\ncreate settings if missing]
-  userId[currentUserId]
+  ensure["ensureUser"]
+  seed["Create book_users row,\nseed profile/categories,\ncreate settings if missing"]
+  userId["currentUserId"]
   deny[401 Basic auth challenge]
 
   request --> caddy --> proxy --> auth --> allowed
@@ -183,7 +183,7 @@ flowchart TD
   ownership[Check profile/category ownership]
   valid{Valid input and owned records?}
   write[Insert/update/delete Postgres row]
-  revalidate[revalidatePath('/', 'layout')]
+  revalidate["revalidatePath layout"]
   rerender[Next.js rerenders affected pages]
   error[Return validation error]
 
@@ -206,7 +206,7 @@ flowchart TD
   pageRead[Page/API read]
   ensure[ensureRecurringMaterialized]
   user[currentUserId]
-  materialize[materializeRecurringEntries(userId)]
+  materialize["materializeRecurringEntries"]
   templates[Load active recurring_templates]
   due[Calculate due periods]
   skips[Check recurring_skips]
