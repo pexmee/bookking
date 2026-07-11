@@ -58,7 +58,7 @@ services:
       BOOKKING_TLS_SANS: ${BOOKKING_TLS_SANS:-}
     ports:
       # Localhost only (default). For LAN access change to "0.0.0.0:443:443" — see README.
-      - "0.0.0.0:443:443"
+      - "127.0.0.1:443:443"
     volumes:
       - ./certs:/etc/certs:ro
       - caddy-data:/data
