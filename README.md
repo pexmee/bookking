@@ -34,8 +34,7 @@ Requires [Docker](https://docs.docker.com/get-docker/).
 ```bash
 git clone https://github.com/pexmee/bookking.git
 cd bookking
-docker compose pull
-docker compose up -d
+./scripts/setup.sh          # Windows: .\scripts\setup.ps1
 ```
 
 Open **[https://localhost](https://localhost)** (HTTPS only — there is no HTTP endpoint).
@@ -75,8 +74,12 @@ another computer on the same Wi‑Fi:
 
 3. **Optional — fewer certificate warnings on your phone:** TLS is generated automatically
    on first start. To avoid browser warnings entirely, run
-   `scripts/setup-certs` (requires [mkcert](https://github.com/FiloSottile/mkcert))
-   and install the printed `rootCA.pem` on the phone once:
+   `scripts/setup-certs` (requires [mkcert](https://github.com/FiloSottile/mkcert)):
+   ```bash
+   ./scripts/setup-certs.sh    # Windows: .\scripts\setup-certs.ps1
+   docker compose restart caddy
+   ```
+   Install the printed `rootCA.pem` on the phone once:
    - **iOS:** AirDrop or email the file → install profile → Settings → General →
      About → Certificate Trust Settings → enable full trust for the mkcert root.
    - **Android:** Settings → Security → Install a certificate → CA certificate →
@@ -198,8 +201,10 @@ docker compose down -v && docker compose up -d
 
 ## Contributing
 
-Interested in hacking on BookKing? See [`DESIGN.md`](DESIGN.md) for the visual system
-and run the app locally with:
+Interested in hacking on BookKing? See [`ARCHITECTURE.md`](ARCHITECTURE.md) for
+the container, request, auth, data, and persistence flowcharts. Keep that file
+updated when changing setup or core data flows. See [`DESIGN.md`](DESIGN.md) for
+the visual system and run the app locally with:
 
 ```bash
 docker compose up -d db
